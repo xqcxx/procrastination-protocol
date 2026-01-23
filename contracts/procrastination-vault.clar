@@ -5,11 +5,24 @@
 
 (define-constant ERR_NO_ACTIVE_STREAK (err u404))
 (define-constant ERR_ALREADY_ACTIVE (err u409))
+(define-constant ERR_INVALID_AMOUNT (err u400))
+(define-constant CONTRACT_OWNER tx-sender)
+
+(define-data-var temptation-contract principal tx-sender)
+
+(define-public (set-temptation-contract (new-contract principal))
+  (begin
+    (asserts! (is-eq tx-sender CONTRACT_OWNER) (err u401))
+    (asserts! (not (is-eq new-contract tx-sender)) (err u401))
+    (ok (var-set temptation-contract new-contract))
+  )
+)
 
 (define-map locked-amounts principal uint)
 
 (define-public (start-procrastinating (amount uint))
   (begin
+    (asserts! (> amount u0) ERR_INVALID_AMOUNT)
     (asserts! (is-none (map-get? locked-amounts tx-sender)) ERR_ALREADY_ACTIVE)
     (try! (stx-transfer? amount tx-sender .procrastination-vault))
     (map-set locked-amounts tx-sender amount)
@@ -79,7 +92,9 @@
 ;; Called by temptation generator
 (define-public (apply-temptation-bonus (user principal) (amount uint))
   (begin
-    (asserts! (is-eq contract-caller .temptation-generator) (err u401))
+    (asserts! (is-eq contract-caller (var-get temptation-contract)) (err u401))
+    (asserts! (not (is-eq user contract-caller)) (err u401)) ;; User cannot be the generator
+    (asserts! (> amount u0) ERR_INVALID_AMOUNT)
     ;; Payout user principal + amount
     (let
       (
