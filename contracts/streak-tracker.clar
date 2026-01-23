@@ -5,11 +5,23 @@
 
 (define-constant ERR_UNAUTHORIZED (err u401))
 
+(define-data-var vault-contract principal tx-sender)
+(define-constant CONTRACT_OWNER tx-sender)
+
+(define-public (set-vault-contract (new-vault principal))
+  (begin
+    (asserts! (is-eq tx-sender CONTRACT_OWNER) ERR_UNAUTHORIZED)
+    (asserts! (not (is-eq new-vault tx-sender)) ERR_UNAUTHORIZED)
+    (ok (var-set vault-contract new-vault))
+  )
+)
+
 (define-map user-start-block principal uint)
 
 (define-public (start-streak (user principal))
   (begin
-    (asserts! (is-eq contract-caller .procrastination-vault) ERR_UNAUTHORIZED)
+    (asserts! (is-eq contract-caller (var-get vault-contract)) ERR_UNAUTHORIZED)
+    (asserts! (not (is-eq user contract-caller)) ERR_UNAUTHORIZED)
     (map-set user-start-block user burn-block-height)
     (ok true)
   )
@@ -17,7 +29,8 @@
 
 (define-public (end-streak (user principal))
   (begin
-    (asserts! (is-eq contract-caller .procrastination-vault) ERR_UNAUTHORIZED)
+    (asserts! (is-eq contract-caller (var-get vault-contract)) ERR_UNAUTHORIZED)
+    (asserts! (not (is-eq user contract-caller)) ERR_UNAUTHORIZED)
     (map-delete user-start-block user)
     (ok true)
   )

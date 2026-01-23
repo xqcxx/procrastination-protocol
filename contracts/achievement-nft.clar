@@ -37,6 +37,8 @@
 (define-public (transfer (token-id uint) (sender principal) (recipient principal))
   (begin
     (asserts! (is-eq tx-sender sender) (err u401))
+    (asserts! (not (is-eq sender recipient)) (err u401))
+    (asserts! (is-eq (some sender) (nft-get-owner? achievement-badge token-id)) (err u401))
     (nft-transfer? achievement-badge token-id sender recipient)
   )
 )
