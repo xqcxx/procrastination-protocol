@@ -1,3 +1,5 @@
+'use client';
+
 import { STACKS_TESTNET, STACKS_MAINNET } from '@stacks/network';
 import { openContractCall } from '@stacks/connect';
 import { 
