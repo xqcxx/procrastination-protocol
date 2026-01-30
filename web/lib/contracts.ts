@@ -1,4 +1,5 @@
-import { network } from './stacks';
+import { STACKS_TESTNET, STACKS_MAINNET } from '@stacks/network';
+import { openContractCall } from '@stacks/connect';
 import { 
   fetchCallReadOnlyFunction, 
   cvToValue, 
@@ -9,6 +10,10 @@ import {
   PostConditionMode,
   Pc
 } from '@stacks/transactions';
+
+const network = process.env.NEXT_PUBLIC_STACKS_NETWORK === 'mainnet'
+  ? STACKS_MAINNET
+  : STACKS_TESTNET;
 
 // Contract Config
 const DEPLOYER = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
