@@ -1,7 +1,7 @@
 import { network } from './stacks';
 import { openContractCall } from '@stacks/connect';
 import { 
-  callReadOnlyFunction, 
+  fetchCallReadOnlyFunction, 
   cvToValue, 
   standardPrincipalCV, 
   uintCV,
@@ -39,6 +39,73 @@ export const CONTRACTS = {
     address: DEPLOYER,
     name: 'penalty-pool-v2'
   }
+} as const;
+
+// Read Only Helpers
+export async function getLockedAmount(user: string) {
+  const result = await fetchCallReadOnlyFunction({
+    network,
+    contractAddress: CONTRACTS.VAULT.address,
+    contractName: CONTRACTS.VAULT.name,
+    functionName: 'get-locked-amount',
+    functionArgs: [standardPrincipalCV(user)],
+    senderAddress: user
+  });
+  return cvToValue(result);
+}
+
+export async function getStreakDays(user: string) {
+  const result = await fetchCallReadOnlyFunction({
+    network,
+    contractAddress: CONTRACTS.STREAK.address,
+    contractName: CONTRACTS.STREAK.name,
+    functionName: 'get-streak-days',
+    functionArgs: [standardPrincipalCV(user)],
+    senderAddress: user
+  });
+  return cvToValue(result);
+}
+
+export async function getCurrentTemptation() {
+  try {
+    const result = await fetchCallReadOnlyFunction({
+      network,
+      contractAddress: CONTRACTS.TEMPTATION.address,
+      contractName: CONTRACTS.TEMPTATION.name,
+      functionName: 'get-current-temptation',
+      functionArgs: [],
+      senderAddress: DEPLOYER
+    });
+    return cvToValue(result); // Returns object or null (err)
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function getLeaderboard() {
+  const result = await fetchCallReadOnlyFunction({
+    network,
+    contractAddress: CONTRACTS.LEADERBOARD.address,
+    contractName: CONTRACTS.LEADERBOARD.name,
+    functionName: 'get-leaderboard',
+    functionArgs: [],
+    senderAddress: DEPLOYER
+  });
+  return cvToValue(result);
+}
+
+export async function hasBadge(user: string, badgeType: number) {
+  const result = await fetchCallReadOnlyFunction({
+    network,
+    contractAddress: CONTRACTS.NFT.address,
+    contractName: CONTRACTS.NFT.name,
+    functionName: 'has-badge',
+    functionArgs: [standardPrincipalCV(user), uintCV(badgeType)],
+    senderAddress: user
+  });
+  return cvToValue(result); // Returns bool
+}
+
 } as const;
 
 // Read Only Helpers
