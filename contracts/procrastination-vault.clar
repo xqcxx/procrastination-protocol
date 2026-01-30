@@ -80,10 +80,12 @@
 )
 
 (define-read-only (get-multiplier (days uint))
-  (if (>= days u30) u105 ;; 5% bonus
-    (if (>= days u14) u103 ;; 3% bonus
-      (if (>= days u7) u101 ;; 1% bonus
-        u100 ;; 0% bonus
+  (if (>= days u100) u110 ;; 10% bonus
+    (if (>= days u30) u105 ;; 5% bonus
+      (if (>= days u14) u103 ;; 3% bonus
+        (if (>= days u7) u101 ;; 1% bonus
+          u100 ;; 0% bonus
+        )
       )
     )
   )
