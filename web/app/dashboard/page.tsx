@@ -11,16 +11,22 @@ import {
 } from '../../lib/contracts';
 import { openContractCall } from '@stacks/connect';
 import Navbar from '../../components/Navbar';
+import { StreakTimer } from '../../components/StreakTimer';
 
 export default function DashboardPage() {
   const { address, isConnected } = useWallet();
   const [lockedAmount, setLockedAmount] = useState<number>(0);
   const [streakDays, setStreakDays] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     if (address) {
       loadData();
+      
+      // Auto-refresh every 30 seconds
+      const interval = setInterval(loadData, 30000);
+      return () => clearInterval(interval);
     }
   }, [address]);
 
@@ -33,6 +39,7 @@ export default function DashboardPage() {
       
       setLockedAmount(Number(locked || 0));
       setStreakDays(Number(days || 0));
+      setLastUpdated(new Date());
     } catch (e) {
       console.error(e);
     } finally {
@@ -67,12 +74,20 @@ export default function DashboardPage() {
       
       <div className="max-w-4xl mx-auto px-6 py-12">
         <div className="flex justify-between items-center mb-10">
-          <h1 className="text-3xl font-bold">Your Inactivity</h1>
+          <div>
+            <h1 className="text-3xl font-bold">Your Inactivity</h1>
+            {lastUpdated && (
+              <p className="text-sm text-zinc-500 mt-1">
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </p>
+            )}
+          </div>
           <button 
             onClick={loadData}
-            className="text-sm text-zinc-500 hover:text-black dark:hover:text-white"
+            disabled={loading}
+            className="text-sm text-zinc-500 hover:text-black dark:hover:text-white disabled:opacity-50"
           >
-            Refresh
+            {loading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
 
@@ -86,9 +101,7 @@ export default function DashboardPage() {
           
           <div className="bg-white dark:bg-zinc-900 p-8 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800">
             <h3 className="text-sm font-medium text-zinc-500 mb-2 uppercase tracking-wider">Streak</h3>
-            <p className="text-4xl font-black font-mono">
-              {streakDays} <span className="text-lg text-zinc-400">Days</span>
-            </p>
+            <StreakTimer streakDays={streakDays} />
           </div>
         </div>
 
