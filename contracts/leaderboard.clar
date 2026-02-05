@@ -3,30 +3,47 @@
 ;; Clarity 2 Smart Contract
 ;; ============================================
 
+(define-constant ERR_NOT_FOUND (err u404))
+(define-constant ERR_INVALID_STREAK (err u400))
+(define-constant ERR_LIST_OVERFLOW (err u500))
+
 (define-data-var top-scores (list 10 { user: principal, blocks: uint }) (list))
 
 (define-public (update-my-position)
   (let
     (
-      (streak (unwrap-panic (contract-call? .streak-tracker get-streak-blocks tx-sender)))
+      (streak-result (contract-call? .streak-tracker get-streak-blocks tx-sender))
       (current-scores (var-get top-scores))
-      ;; Filter out existing score for this user
-      (filtered-scores (filter filter-sender current-scores))
     )
-    (if (< (len filtered-scores) u10)
-      ;; If room, just append
-      (ok (var-set top-scores (unwrap-panic (as-max-len? (append filtered-scores { user: tx-sender, blocks: streak }) u10))))
-      ;; If full, remove the first one (FIFO) and append new
-      (let
-        (
-          ;; This is a bit tricky in Clarity without 'slice' or 'cdr' easily on lists
-          ;; But we can use a trick or just accept we need to implement 'remove-first' logic
-          ;; For MVP, let's just use the filtered list if it's smaller (meaning they were already in it)
-          ;; If they weren't in it, we need to drop someone.
-          (new-list (unwrap-panic (as-max-len? (append (if (is-eq (len filtered-scores) u10) (cdr filtered-scores) filtered-scores) { user: tx-sender, blocks: streak }) u10)))
+    ;; Verify streak exists
+    (match streak-result
+      streak
+        (begin
+          ;; Filter out existing score for this user
+          (let
+            (
+              (filtered-scores (filter filter-sender current-scores))
+            )
+            (if (< (len filtered-scores) u10)
+              ;; If room, just append
+              (match (as-max-len? (append filtered-scores { user: tx-sender, blocks: streak }) u10)
+                new-list (ok (var-set top-scores new-list))
+                ERR_LIST_OVERFLOW
+              )
+              ;; If full, remove the first one (FIFO) and append new
+              (let
+                (
+                  (new-list-opt (as-max-len? (append (if (is-eq (len filtered-scores) u10) (cdr filtered-scores) filtered-scores) { user: tx-sender, blocks: streak }) u10))
+                )
+                (match new-list-opt
+                  new-list (ok (var-set top-scores new-list))
+                  ERR_LIST_OVERFLOW
+                )
+              )
+            )
+          )
         )
-        (ok (var-set top-scores new-list))
-      )
+      ERR_NOT_FOUND
     )
   )
 )
@@ -36,7 +53,7 @@
 )
 
 (define-private (cdr (l (list 10 { user: principal, blocks: uint })))
-  (unwrap-panic (as-max-len? (slice? l u1 (len l)) u10))
+  (default-to (list) (as-max-len? (slice? l u1 (len l)) u10))
 )
 
 (define-read-only (get-leaderboard)
