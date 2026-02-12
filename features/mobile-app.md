@@ -4,3 +4,4 @@
 // Mobile app with push notifications step 4
 // Mobile app with push notifications step 5
 // Mobile app with push notifications step 6
+// Mobile app with push notifications step 7
