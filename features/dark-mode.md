@@ -5,3 +5,4 @@
 // Dark mode theme support step 5
 // Dark mode theme support step 6
 // Dark mode theme support step 7
+// Dark mode theme support step 8
