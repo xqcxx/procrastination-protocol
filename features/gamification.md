@@ -4,3 +4,4 @@
 // Gamification step 4
 // Gamification step 5
 // Gamification step 6
+// Gamification step 7
