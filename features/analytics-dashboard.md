@@ -5,3 +5,4 @@
 // Analytics dashboard step 5
 // Analytics dashboard step 6
 // Analytics dashboard step 7
+// Analytics dashboard step 8
