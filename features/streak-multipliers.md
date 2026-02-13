@@ -5,3 +5,4 @@
 // Streak multipliers step 5
 // Streak multipliers step 6
 // Streak multipliers step 7
+// Streak multipliers step 8
